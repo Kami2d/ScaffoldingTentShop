@@ -1,7 +1,5 @@
 # ScaffoldingTentShop
 
-Banner ASCII + descrição
-
 ## Funcionalidades
 - Lojas físicas (scaffolding + carpet)
 - Hologramas configuráveis
