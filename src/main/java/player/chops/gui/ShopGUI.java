@@ -14,6 +14,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
+import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -416,6 +417,17 @@ public class ShopGUI implements Listener {
             event.setCancelled(true);
             handleConfigGUIClick(player, event);
             return;
+        }
+    }
+
+    @EventHandler
+    public void onInventoryDrag(InventoryDragEvent event) {
+        if (!event.getView().getTitle().equals(Utils.colorize("&8Adicionar Produto"))) return;
+        for (int slot : event.getRawSlots()) {
+            if (slot < 54) {
+                event.setCancelled(true);
+                return;
+            }
         }
     }
 

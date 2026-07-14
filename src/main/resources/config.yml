@@ -1,8 +1,11 @@
 shop-duration: 10800
 shop-creation-cost: 1000.0
 max-shops-per-player: 3
+creation-item: EMERALD
 hologram:
   offset-y: 2.5
+  show-timer: true
+  timer-line: "&7\u23f1 &f%time_remaining%"
   lines:
     - "&b&l[PLAYER SHOP]"
     - "&f%shop_name%"

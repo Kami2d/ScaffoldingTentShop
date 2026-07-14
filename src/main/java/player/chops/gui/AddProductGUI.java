@@ -8,6 +8,7 @@ import java.util.UUID;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -122,7 +123,7 @@ public class AddProductGUI implements Listener {
             sLore.add(Utils.colorize("&7\u2726 Quantidade: &f" + session.quantity));
         } else {
             sLore.add(Utils.colorize("&7\u2726 Nenhum item"));
-            sLore.add(Utils.colorize("&7\u2726 Arraste ao slot"));
+            sLore.add(Utils.colorize("&7\u2726 Segure e clique na loja"));
         }
         sLore.add("");
         sLore.add(Utils.colorize("&7\u2726 Modo: " + (session.isBuying ? "&eComprando" : "&aVendendo")));
@@ -252,47 +253,13 @@ public class AddProductGUI implements Listener {
 
         int slot = event.getRawSlot();
         if (slot < 0 || slot >= 54) {
-            // Clicks in player's own inventory are allowed (to pick up items to cursor)
+            event.setCancelled(true);
             return;
         }
 
-        // Slot 13: item drop area (always cancelled, we handle manually)
+        // Slot 13: blocked - only selection via open() method
         if (slot == 13) {
             event.setCancelled(true);
-            ItemStack cursor = event.getCursor();
-            ItemStack current = event.getCurrentItem();
-
-            if (cursor != null && cursor.getType() != Material.AIR) {
-                int totalOnCursor = cursor.getAmount();
-                ItemStack newItem = cursor.clone();
-                newItem.setAmount(1);
-                // Return previous session items to inventory
-                if (session.item != null && session.quantity > 0) {
-                    ItemStack oldItem = session.item.clone();
-                    oldItem.setAmount(session.quantity);
-                    giveOrDrop(player, oldItem);
-                }
-                session.item = newItem;
-                session.quantity = 0;
-                // Keep remaining items on cursor (only consume 1)
-                if (totalOnCursor > 1) {
-                    cursor.setAmount(totalOnCursor - 1);
-                    event.getView().setCursor(cursor);
-                } else {
-                    event.getView().setCursor(null);
-                }
-                Bukkit.getScheduler().runTask(PlayserShops.getInstance(), () -> rebuildGUI(player));
-                return;
-            }
-
-            if (current != null && current.getType() != Material.AIR && (cursor == null || cursor.getType() == Material.AIR)) {
-                // Pick up item from slot back to cursor
-                event.getView().setCursor(current.clone());
-                session.item = null;
-                session.quantity = 0;
-                Bukkit.getScheduler().runTask(PlayserShops.getInstance(), () -> rebuildGUI(player));
-                return;
-            }
             return;
         }
 
@@ -313,6 +280,7 @@ public class AddProductGUI implements Listener {
             if (slot == plusSlots[i]) {
                 if (session.item == null) {
                     player.sendMessage(Utils.colorize("&cSelecione um item primeiro!"));
+                    player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f);
                     return;
                 }
                 int amount = plusAmounts[i] == -1 ? 9999 : plusAmounts[i];
@@ -320,9 +288,11 @@ public class AddProductGUI implements Listener {
                 if (taken > 0) {
                     session.quantity += taken;
                     rebuildGUI(player);
+                    player.playSound(player.getLocation(), Sound.ENTITY_ITEM_PICKUP, 1.0f, 1.0f);
                     player.sendMessage(Utils.colorize("&a+" + taken + " " + session.item.getType().name()));
                 } else {
                     player.sendMessage(Utils.colorize("&cVoc\u00ea n\u00e3o tem esse item no invent\u00e1rio!"));
+                    player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f);
                 }
                 return;
             }
@@ -344,6 +314,7 @@ public class AddProductGUI implements Listener {
                     session.quantity = 0;
                 }
                 rebuildGUI(player);
+                player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 1.0f, 0.5f);
                 player.sendMessage(Utils.colorize("&c-" + amount + " " + (session.item != null ? session.item.getType().name() : "itens")));
                 return;
             }
@@ -370,24 +341,28 @@ public class AddProductGUI implements Listener {
         if (slot == 53) {
             if (session.item == null || session.quantity <= 0) {
                 player.sendMessage(Utils.colorize("&cColoque um item e ajuste a quantidade primeiro!"));
+                player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f);
                 return;
             }
 
             // Anti-dump: max 64 per product
             if (session.quantity > 64) {
                 player.sendMessage(Utils.colorize("&cM\u00e1ximo de 64 itens por produto!"));
+                player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f);
                 return;
             }
 
             // Anti-dump: max 54 products per shop
             if (!ShopManager.getInstance().canAddItem(session.shop)) {
                 player.sendMessage(Utils.colorize("&cLimite de 54 produtos por loja!"));
+                player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f);
                 return;
             }
 
             // Anti-dump: no duplicate items
             if (ShopManager.getInstance().hasItem(session.shop, session.item)) {
                 player.sendMessage(Utils.colorize("&cEste item j\u00e1 existe na loja!"));
+                player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f);
                 return;
             }
 
@@ -402,6 +377,7 @@ public class AddProductGUI implements Listener {
 
             session.shop.getItems().add(si);
             ShopManager.getInstance().updateShop(session.shop);
+            player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1.0f, 1.5f);
             player.sendMessage(Utils.colorize("&aProduto adicionado: &f" + session.quantity + "x " + session.item.getType().name()));
             cleanup(player);
             ShopGUI.openShopConfigGUI(player, session.shop, 0);

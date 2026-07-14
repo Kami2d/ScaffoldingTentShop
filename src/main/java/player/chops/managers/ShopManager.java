@@ -67,6 +67,8 @@ public class ShopManager {
 
     private void startExpirationTask() {
         taskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(PlayserShops.getInstance(), () -> {
+            HologramManager.getInstance().updateTimerHolograms();
+
             List<Shop> expired = new ArrayList<>();
             for (Shop shop : shops.values()) {
                 if (shop.isExpired()) {
