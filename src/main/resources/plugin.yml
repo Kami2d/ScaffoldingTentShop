@@ -1,0 +1,19 @@
+main: player.chops.PlayserShops
+version: 1.0.0
+name: PlayserShops
+author: Kamee2d
+description: Player Shops plugin with scaffolding + carpet shop system.
+api-version: 1.21
+
+depend: [Vault]
+
+commands:
+  lojinha:
+    description: Open the shop system
+    usage: /lojinha
+    aliases: [shop, playershop]
+
+permissions:
+  playsershops.admin:
+    description: Admin access to all shops
+    default: op

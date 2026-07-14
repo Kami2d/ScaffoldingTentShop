@@ -1,0 +1,9 @@
+shop-duration: 10800
+shop-creation-cost: 1000.0
+max-shops-per-player: 3
+hologram:
+  offset-y: 2.5
+  lines:
+    - "&b&l[PLAYER SHOP]"
+    - "&f%shop_name%"
+    - "&e%shop_message%"
